@@ -64,6 +64,7 @@ async function uploadAndAnalyze() {
         return;
     }
 
+    // Capture the explicit target file object boundary correctly as a single stream element
     const targetedFile = fileInput.files[0];
 
     // Alter visual loading matrices

@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!dropArea || !fileInput) return;
 
-    // Direct interaction click maps
     dropArea.addEventListener('click', () => fileInput.click());
 
     // Setup hover transition focus states

@@ -4,10 +4,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const metaBox = document.getElementById('fileInfo');
     const nameLabel = document.getElementById('fileNameDisplay');
     const sizeLabel = document.getElementById('fileSizeDisplay');
+    
+    // Explicitly select the action pipeline button
+    const btn = document.getElementById('submitBtn');
 
     if (!dropArea || !fileInput) return;
 
+    // Direct interaction click maps
     dropArea.addEventListener('click', () => fileInput.click());
+
+    // Bind the API multi-part transmission trigger directly
+    if (btn) {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            uploadAndAnalyze();
+        });
+    }
 
     // Setup hover transition focus states
     ['dragenter', 'dragover'].forEach(eventName => {
@@ -70,14 +82,16 @@ async function uploadAndAnalyze() {
     btn.disabled = true;
     btn.classList.add('opacity-40', 'cursor-not-allowed');
     btn.innerText = "Processing Data Context...";
-    outputCard.classList.remove('hidden');
-    indicator.innerText = "STREAMING METRICS TO GROQ CLOUD...";
-    consoleText.innerHTML = `<span class="animate-pulse text-sky-400/60 font-mono">Initializing token streams with Llama3-70B model vectors...</span>`;
+    if (outputCard) outputCard.classList.remove('hidden');
+    if (indicator) indicator.innerText = "STREAMING METRICS TO GROQ CLOUD...";
+    if (consoleText) {
+        consoleText.innerHTML = `<span class="animate-pulse text-sky-400/60 font-mono">Initializing token streams with Llama3-70B model vectors...</span>`;
+    }
 
     // Package the structured multi-part dataset cleanly
     const payload = new FormData();
     payload.append("file", targetedFile);
-    payload.append("analysis_type", typeInput.value);
+    payload.append("analysis_type", typeInput ? typeInput.value : "summary");
 
     try {
         const connection = await fetch('/api/analyze', {
@@ -88,19 +102,25 @@ async function uploadAndAnalyze() {
         const data = await connection.json();
 
         if (connection.ok) {
-            indicator.innerText = "ANALYSIS COMPLETE ✅";
-            consoleText.innerText = data.result;
+            if (indicator) indicator.innerText = "ANALYSIS COMPLETE ✅";
+            if (consoleText) consoleText.innerText = data.result;
         } else {
-            indicator.innerText = "EXECUTION ABORTED ❌";
-            consoleText.innerHTML = `<span class="text-red-400 font-mono font-semibold">${data.error || 'Internal token evaluation crash'}</span>`;
+            if (indicator) indicator.innerText = "EXECUTION ABORTED ❌";
+            if (consoleText) {
+                consoleText.innerHTML = `<span class="text-red-400 font-mono font-semibold">${data.error || 'Internal token evaluation crash'}</span>`;
+            }
         }
     } catch (networkError) {
-        indicator.innerText = "CONNECTION RUNTIME LOSS ❌";
-        consoleText.innerHTML = `<span class="text-red-400 font-mono font-semibold">Endpoint communication failure. Check Render container bounds.</span>`;
+        if (indicator) indicator.innerText = "CONNECTION RUNTIME LOSS ❌";
+        if (consoleText) {
+            consoleText.innerHTML = `<span class="text-red-400 font-mono font-semibold">Endpoint communication failure. Check Render container bounds.</span>`;
+        }
     } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-40', 'cursor-not-allowed');
-        btn.innerText = "Run Context Analysis Pipeline";
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-40', 'cursor-not-allowed');
+            btn.innerText = "Run Context Analysis Pipeline";
+        }
     }
 }
 
